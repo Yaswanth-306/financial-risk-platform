@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+*.pkl
+*.db
+*.sqlite
+mlflow-artifacts/
+data/sec_filings/
+data/faiss_index
+data/chunks.json
+*.egg-info/
+.pytest_cache/
+venv/
+airflow-venv/
+logs/
+*.log
+.DS_Store

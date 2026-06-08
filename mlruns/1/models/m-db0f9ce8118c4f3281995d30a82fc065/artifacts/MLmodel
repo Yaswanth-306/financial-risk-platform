@@ -1,0 +1,23 @@
+artifact_path: /home/chitr/financial-risk-platform/mlruns/1/models/m-db0f9ce8118c4f3281995d30a82fc065/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.15
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.9.0
+    skops_trusted_types: null
+mlflow_version: 3.13.0
+model_id: m-db0f9ce8118c4f3281995d30a82fc065
+model_size_bytes: 777
+model_uuid: m-db0f9ce8118c4f3281995d30a82fc065
+prompts: null
+run_id: 96b613f269a840cd9d1c75a27eca832c
+utc_time_created: '2026-06-08 01:52:48.027375'
