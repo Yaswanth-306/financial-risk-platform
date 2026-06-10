@@ -52,6 +52,10 @@ CIK_MAP = {
 }
 
 def get_filing_text(ticker: str) -> str:
+    """
+    Get 10-K filing text for a ticker.
+    Returns cached file if it exists, otherwise fetches from SEC EDGAR and saves.
+    """
     file_path = DATA_DIR / f"{ticker}_10K.txt"
 
     # Return cached if exists
@@ -89,105 +93,20 @@ def get_filing_text(ticker: str) -> str:
                    f"{cik_plain}/{accession}/{accessions[tenk_idx]}-index.htm")
         r2 = requests.get(idx_url, headers=HEADERS, timeout=15)
 
-        # Extract text from filing
-        doc_url = (f"https://www.sec.gov/Archives/edgar/data/"
-                   f"{cik_plain}/{accession}/")
+        # Fetch actual filing text
         r3 = requests.get(
             f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json",
             headers=HEADERS, timeout=15
         )
 
-        # Get annual report text via search
-        search = requests.get(
-            f"https://efts.sec.gov/LATEST/search-index?q=%22{ticker}%22"
-            f"&forms=10-K&dateRange=custom&startdt=2023-01-01&enddt=2025-01-01",
-            headers=HEADERS, timeout=10
-        )
-
-        # Build synthetic but real filing content from facts
-        facts_data = r3.json() if r3.status_code == 200 else {}
-        text = build_filing_text(ticker, facts_data, cik)
+        text = r3.text if r3.status_code == 200 else ""
         file_path.write_text(text)
         print(f"✅ Saved {ticker} filing ({len(text)} chars)")
         return text
 
     except Exception as e:
         print(f"Error fetching {ticker}: {e}")
-        # Return sample text for demo
-        return get_sample_filing(ticker)
-
-def build_filing_text(ticker, facts_data, cik):
-    text = f"""
-SEC 10-K Annual Report Filing — {ticker}
-CIK: {cik}
-
-BUSINESS OVERVIEW
-{ticker} is a publicly traded company. This annual report contains 
-forward-looking statements subject to risks and uncertainties.
-
-RISK FACTORS
-The company faces various market risks including:
-- Market volatility and macroeconomic conditions
-- Regulatory and compliance risks
-- Competition and technological disruption
-- Supply chain and operational risks
-- Cybersecurity and data privacy risks
-- Interest rate and credit risks
-- Foreign exchange and currency risks
-- Liquidity and capital risks
-
-FINANCIAL HIGHLIGHTS
-This section contains audited financial statements and management 
-discussion of financial performance, capital allocation, and outlook.
-
-MARKET RISK
-The company is exposed to market risk, including changes in interest 
-rates, foreign currency exchange rates, and equity prices. We manage 
-these risks through our risk management framework.
-
-CREDIT RISK
-Credit risk arises from the potential that a counterparty will fail 
-to perform its obligations. We monitor credit exposure and maintain 
-credit policies to mitigate this risk.
-
-LIQUIDITY RISK
-Liquidity risk is the risk that the company will not be able to meet 
-its financial obligations as they fall due. We maintain adequate 
-liquidity through cash management and credit facilities.
-
-OPERATIONAL RISK
-Operational risks include risks arising from inadequate or failed 
-internal processes, people, systems, or external events.
-"""
-    return text
-
-def get_sample_filing(ticker):
-    return f"""
-SEC 10-K Filing — {ticker} (Sample Data)
-
-RISK FACTORS FOR {ticker}:
-
-Market Risk: {ticker} faces significant exposure to equity market 
-volatility. Adverse market conditions could materially impact revenue.
-
-Regulatory Risk: Changes in financial regulations could increase 
-compliance costs and restrict certain business activities.
-
-Competition Risk: Intense competition from established players and 
-new entrants could pressure margins and market share.
-
-Technology Risk: Rapid technological changes require continuous 
-investment in innovation and could disrupt existing business models.
-
-Liquidity Risk: Market disruptions could affect access to capital 
-markets and increase funding costs.
-
-Credit Risk: Counterparty defaults and credit deterioration could 
-result in financial losses.
-
-Operational Risk: System failures, cybersecurity breaches, and 
-human errors could disrupt operations and damage reputation.
-"""
+        return ""
 
 # ── Text Chunking ─────────────────────────────────────────
 def chunk_text(text: str, chunk_size=400, overlap=50):
