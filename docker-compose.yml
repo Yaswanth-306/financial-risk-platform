@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: financial-risk-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_HOST=${POSTGRES_HOST:-172.19.48.1}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-financial_risk}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - AIRFLOW_HOME=${AIRFLOW_HOME:-/app/airflow}
+      - APP_ENV=${APP_ENV:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-False}
+    volumes:
+      # Mount ML models
+      - ./ml_models:/app/ml_models:ro
+      # Mount data directory (FAISS index, SEC filings)
+      - ./data:/app/data:ro
+      # Mount logs
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    restart: unless-stopped
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+    # Network settings
+    networks:
+      - financial-risk-network
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  financial-risk-network:
+    driver: bridge
