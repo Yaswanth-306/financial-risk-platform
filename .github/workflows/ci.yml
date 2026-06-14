@@ -19,8 +19,42 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest httpx fastapi uvicorn pydantic python-dotenv             psycopg2-binary joblib lightgbm scikit-learn shap groq             faiss-cpu sentence-transformers langchain langgraph langchain-groq
+          pip install pytest httpx fastapi uvicorn pydantic python-dotenv psycopg2-binary joblib lightgbm scikit-learn shap groq faiss-cpu sentence-transformers langchain langgraph langchain-groq
 
       - name: Create dummy .env for tests
         run: |
-          echo 
+          echo 'DB_HOST=localhost' >> .env
+          echo 'DB_PORT=5432' >> .env
+          echo 'DB_NAME=test' >> .env
+          echo 'DB_USER=test' >> .env
+          echo 'DB_PASSWORD=test' >> .env
+          echo 'GROQ_API_KEY=test' >> .env
+          echo 'MLFLOW_TRACKING_URI=sqlite:///test.db' >> .env
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Run flake8
+        run: flake8 api/main.py genai/agents.py genai/rag_system.py --max-line-length=120 --ignore=E501,W503
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -t financial-risk-api .
