@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest httpx fastapi uvicorn pydantic python-dotenv psycopg2-binary joblib lightgbm scikit-learn shap groq faiss-cpu sentence-transformers langchain langgraph langchain-groq
+          pip install pytest httpx fastapi uvicorn pydantic python-dotenv psycopg2-binary joblib lightgbm scikit-learn shap groq faiss-cpu sentence-transformers langchain langgraph langchain-groq mlflow numpy pandas requests
 
       - name: Create dummy .env for tests
         run: |
