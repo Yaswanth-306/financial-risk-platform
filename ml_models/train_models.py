@@ -5,6 +5,7 @@ import numpy as np
 import mlflow
 import mlflow.sklearn
 import mlflow.xgboost
+from pathlib import Path
 from dotenv import load_dotenv
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -18,7 +19,8 @@ import shap
 import warnings
 warnings.filterwarnings('ignore')
 
-load_dotenv('/home/chitr/financial-risk-platform/.env')
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 # ── Database ──────────────────────────────────────────────
 def load_features():

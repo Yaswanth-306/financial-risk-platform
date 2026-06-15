@@ -12,11 +12,13 @@ import psycopg2
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from pathlib import Path
 from dotenv import load_dotenv
 import warnings
 warnings.filterwarnings('ignore')
 
-load_dotenv('/home/chitr/financial-risk-platform/.env')
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 app = FastAPI(
     title="Financial Risk Intelligence API",

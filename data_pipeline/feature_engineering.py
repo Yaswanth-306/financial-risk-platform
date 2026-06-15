@@ -2,9 +2,11 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv('/home/chitr/financial-risk-platform/.env')
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 # Initialize Spark
 spark = SparkSession.builder \

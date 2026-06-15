@@ -2,12 +2,14 @@ import os
 import json
 import requests
 from typing import TypedDict, Annotated, List
+from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
 from langgraph.graph import StateGraph, END
 import operator
 
-load_dotenv('/home/chitr/financial-risk-platform/.env')
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 API_URL      = "http://localhost:8000"
