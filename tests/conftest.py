@@ -34,23 +34,44 @@ def _mock_joblib_load(path, *args, **kwargs):
 
 joblib.load = _mock_joblib_load
 
-# Mock genai.rag_system.load_index BEFORE importing app
+# Mock genai package and submodules BEFORE importing the app
 def _mock_load_index():
     embedder = MagicMock()
     index = MagicMock()
     chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
     return index, chunks, embedder
 
-# Patch before import
-sys.modules['genai.rag_system'] = MagicMock(load_index=_mock_load_index, query_rag=MagicMock())
+def _mock_query_rag(*args, **kwargs):
+    return {
+        "answer": "Based on SEC filings, the main risk factors are market volatility and regulatory changes.",
+        "sources": ["AAPL"],
+        "chunks": ["Risk factor 1", "Risk factor 2"]
+    }
+
+def _mock_investigate(*args, **kwargs):
+    return {
+        "key_risks": ["Market Risk", "Regulatory Risk"],
+        "analysis": "Detailed risk analysis"
+    }
+
+# Create genai package mock
+genai_mock = MagicMock()
+genai_mock.agents.investigate = _mock_investigate
+genai_mock.rag_system.load_index = _mock_load_index
+genai_mock.rag_system.query_rag = _mock_query_rag
+
+# Register all genai modules
+sys.modules['genai'] = genai_mock
+sys.modules['genai.agents'] = genai_mock.agents
+sys.modules['genai.rag_system'] = genai_mock.rag_system
 
 # NOW import the app (after mocks are patched)
 from fastapi.testclient import TestClient
 from api.main import app
 
 @pytest.fixture
-def test_client():
-    """Return TestClient for testing"""
+def client():
+    """Create a TestClient for the FastAPI app"""
     return TestClient(app)
 
 @pytest.fixture(autouse=True)
@@ -109,13 +130,3 @@ def mock_database(monkeypatch):
         return mock_conn
 
     monkeypatch.setattr("psycopg2.connect", mock_connect)
-
-    # Mock query_rag
-    def mock_query_rag(*args, **kwargs):
-        return {
-            "answer": "Based on SEC filings, the main risk factors are market volatility and regulatory changes.",
-            "sources": ["AAPL"],
-            "chunks": ["Risk factor 1", "Risk factor 2"]
-        }
-
-    monkeypatch.setattr("genai.rag_system.query_rag", mock_query_rag)
