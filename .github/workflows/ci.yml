@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+﻿name: CI/CD Pipeline
 
 on:
   push:
@@ -19,20 +19,19 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest httpx fastapi uvicorn pydantic python-dotenv psycopg2-binary joblib lightgbm scikit-learn shap groq faiss-cpu sentence-transformers langchain langgraph langchain-groq mlflow numpy pandas requests
+          pip install pytest httpx fastapi uvicorn pydantic python-dotenv \
+            psycopg2-binary joblib lightgbm scikit-learn shap groq xgboost mlflow \
+            faiss-cpu sentence-transformers langchain langgraph langchain-groq
 
       - name: Create dummy .env for tests
         run: |
-          echo 'DB_HOST=localhost' >> .env
-          echo 'DB_PORT=5432' >> .env
-          echo 'DB_NAME=test' >> .env
-          echo 'DB_USER=test' >> .env
-          echo 'DB_PASSWORD=test' >> .env
-          echo 'GROQ_API_KEY=test' >> .env
-          echo 'MLFLOW_TRACKING_URI=sqlite:///test.db' >> .env
-
-      - name: Create test directories
-        run: mkdir -p data/sec_filings data/faiss_index
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_NAME=test" >> .env
+          echo "DB_USER=test" >> .env
+          echo "DB_PASSWORD=test" >> .env
+          echo "GROQ_API_KEY=test" >> .env
+          echo "MLFLOW_TRACKING_URI=sqlite:///test.db" >> .env
 
       - name: Run tests
         run: python -m pytest tests/ -v --tb=short
@@ -51,7 +50,9 @@ jobs:
         run: pip install flake8
 
       - name: Run flake8
-        run: flake8 api/main.py genai/agents.py genai/rag_system.py --max-line-length=120 --ignore=E501,W503,E225,E231,E203 || true
+        run: |
+          flake8 api/main.py genai/agents.py genai/rag_system.py \
+            --max-line-length=120 --ignore=E501,W503
 
   docker-build:
     runs-on: ubuntu-latest
