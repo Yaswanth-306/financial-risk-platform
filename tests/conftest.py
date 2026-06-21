@@ -27,10 +27,30 @@ def setup_models():
     yield
 
 @pytest.fixture(autouse=True)
-def mock_database_and_models(monkeypatch):
-    """Mock database and model loading"""
+def mock_everything(monkeypatch):
+    """Mock all external dependencies"""
     
-    # Mock test data
+    # Create dummy models
+    scaler = StandardScaler()
+    X_dummy = np.random.randn(100, 9)
+    scaler.fit(X_dummy)
+    
+    model = LogisticRegression(random_state=42, max_iter=1000)
+    y_dummy = np.random.randint(0, 2, 100)
+    model.fit(X_dummy, y_dummy)
+    
+    # Mock joblib.load to return our dummy models
+    original_joblib_load = joblib.load
+    def mock_joblib_load(path, *args, **kwargs):
+        if "scaler.pkl" in str(path):
+            return scaler
+        elif "lgbm_model.pkl" in str(path):
+            return model
+        return original_joblib_load(path, *args, **kwargs)
+    
+    monkeypatch.setattr("joblib.load", mock_joblib_load)
+    
+    # Mock pandas.read_sql
     tickers_df = pd.DataFrame({"ticker": ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN",
                                           "META", "NVDA", "JPM", "BAC", "GS"]})
     
@@ -53,7 +73,6 @@ def mock_database_and_models(monkeypatch):
         "price_vs_ma30": [1.02]
     })
     
-    # Mock pd.read_sql to return DataFrames
     def mock_read_sql(query, conn, *args, **kwargs):
         if "DISTINCT ticker" in query:
             return tickers_df
@@ -65,26 +84,18 @@ def mock_database_and_models(monkeypatch):
     
     monkeypatch.setattr("pandas.read_sql", mock_read_sql)
     
-    # Mock psycopg2.connect to return a mock connection
+    # Mock psycopg2.connect
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
-    mock_cursor.fetchall.return_value = risk_summary_df.values.tolist()
     
     def mock_connect(*args, **kwargs):
         return mock_conn
     
     monkeypatch.setattr("psycopg2.connect", mock_connect)
     
-    # Mock mlflow to return our dummy model
-    def mock_load_model(*args, **kwargs):
-        return joblib.load("ml_models/lgbm_model.pkl")
-    
-    monkeypatch.setattr("mlflow.sklearn.load_model", mock_load_model)
-    
-    # Mock RAG system to return dummy data
+    # Mock RAG load_index
     def mock_load_index():
-        import faiss
         embedder = MagicMock()
         index = MagicMock()
         chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
@@ -92,9 +103,10 @@ def mock_database_and_models(monkeypatch):
     
     monkeypatch.setattr("genai.rag_system.load_index", mock_load_index)
     
+    # Mock query_rag
     def mock_query_rag(*args, **kwargs):
         return {
-            "answer": "Based on SEC filings, the main risk factors are...",
+            "answer": "Based on SEC filings, the main risk factors are market volatility and regulatory changes.",
             "sources": ["AAPL"],
             "chunks": ["Risk factor 1", "Risk factor 2"]
         }
