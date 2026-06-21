@@ -54,7 +54,6 @@ class TestHealthEndpoint:
 class TestTickersEndpoint:
     """Tests for GET /tickers endpoint"""
 
-    @pytest.mark.skipif(not bool(os.getenv("DB_HOST")), reason="Database not available")
     def test_tickers_returns_200(self, client):
         """Test tickers endpoint returns 200"""
         response = client.get("/tickers")
@@ -122,7 +121,6 @@ class TestRiskSummaryEndpoint:
 class TestPredictEndpoint:
     """Tests for POST /predict endpoint"""
 
-    @pytest.mark.skipif(not bool(os.getenv("DB_HOST")), reason="Database not available")
     def test_predict_valid_ticker_returns_200(self, client):
         """Test predict endpoint with valid ticker returns 200"""
         response = client.post("/predict", json={"ticker": "AAPL"})
@@ -219,7 +217,6 @@ class TestExplainEndpoint:
 class TestAskEndpoint:
     """Tests for POST /ask endpoint (RAG endpoint)"""
 
-    @pytest.mark.skipif(not bool(os.getenv("GROQ_API_KEY")), reason="RAG system not available")
     def test_ask_valid_question_returns_200(self, client):
         """Test ask endpoint with valid question returns 200"""
         response = client.post("/ask", json={
