@@ -31,6 +31,9 @@ jobs:
           echo 'GROQ_API_KEY=test' >> .env
           echo 'MLFLOW_TRACKING_URI=sqlite:///test.db' >> .env
 
+      - name: Create test directories
+        run: mkdir -p data/sec_filings data/faiss_index
+
       - name: Run tests
         run: python -m pytest tests/ -v --tb=short
 
