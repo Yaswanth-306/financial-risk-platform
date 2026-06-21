@@ -39,7 +39,7 @@ def mock_everything(monkeypatch):
     y_dummy = np.random.randint(0, 2, 100)
     model.fit(X_dummy, y_dummy)
     
-    # Mock joblib.load to return our dummy models
+    # Mock joblib.load
     original_joblib_load = joblib.load
     def mock_joblib_load(path, *args, **kwargs):
         if "scaler.pkl" in str(path):
@@ -54,12 +54,20 @@ def mock_everything(monkeypatch):
     tickers_df = pd.DataFrame({"ticker": ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN",
                                           "META", "NVDA", "JPM", "BAC", "GS"]})
     
-    risk_summary_df = pd.DataFrame({
-        "ticker": ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN", "META", "NVDA", "JPM", "BAC", "GS"],
-        "avg_volatility": [0.015, 0.025, 0.012, 0.018, 0.020, 0.022, 0.028, 0.010, 0.011, 0.012],
-        "risk_rate": [0.3, 0.7, 0.4, 0.5, 0.6, 0.65, 0.8, 0.2, 0.25, 0.3],
-        "data_points": [100, 95, 98, 102, 97, 96, 94, 105, 103, 101]
-    })
+    risk_summary_data = [
+        ("AAPL", 0.015, 0.3, 100),
+        ("TSLA", 0.025, 0.7, 95),
+        ("GOOGL", 0.012, 0.4, 98),
+        ("MSFT", 0.018, 0.5, 102),
+        ("AMZN", 0.020, 0.6, 97),
+        ("META", 0.022, 0.65, 96),
+        ("NVDA", 0.028, 0.8, 94),
+        ("JPM", 0.010, 0.2, 105),
+        ("BAC", 0.011, 0.25, 103),
+        ("GS", 0.012, 0.3, 101),
+    ]
+    
+    risk_summary_df = pd.DataFrame(risk_summary_data, columns=["ticker", "avg_volatility", "risk_rate", "data_points"])
     
     features_df = pd.DataFrame({
         "daily_return": [0.02],
@@ -88,6 +96,9 @@ def mock_everything(monkeypatch):
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
+    
+    # Mock cursor.fetchall to return risk summary data
+    mock_cursor.fetchall.return_value = risk_summary_data
     
     def mock_connect(*args, **kwargs):
         return mock_conn
