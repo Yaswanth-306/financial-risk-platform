@@ -7,6 +7,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 import joblib
 
-@pytest.fixture(scope=session, autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def setup_models():
     Create
