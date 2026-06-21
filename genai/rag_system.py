@@ -13,9 +13,9 @@ load_dotenv('/home/chitr/financial-risk-platform/.env')
 
 # ── Config ────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-DATA_DIR     = BASE_DIR / 'data' / 'sec_filings'
-INDEX_PATH   = BASE_DIR / 'data' / 'faiss_index'
-CHUNKS_PATH  = BASE_DIR / 'data' / 'chunks.json'
+DATA_DIR     = Path('/home/chitr/financial-risk-platform/data/sec_filings')
+INDEX_PATH   = Path('/home/chitr/financial-risk-platform/data/faiss_index')
+CHUNKS_PATH  = Path('/home/chitr/financial-risk-platform/data/chunks.json')
 
 
 # ── SEC EDGAR Fetcher ─────────────────────────────────────
@@ -51,8 +51,7 @@ CIK_MAP = {
 
 def get_filing_text(ticker: str) -> str:
     """
-    Get 10-K filing text
-    initialize_storage() for a ticker.
+    Get 10-K filing text for a ticker.
     Returns cached file if it exists, otherwise fetches from SEC EDGAR and saves.
     """
     file_path = DATA_DIR / f"{ticker}_10K.txt"
@@ -119,7 +118,7 @@ def chunk_text(text: str, chunk_size=400, overlap=50):
     return chunks
 
 # ── Embedding + FAISS ─────────────────────────────────────
-initialize_storage()
+def build_index(tickers):
     print("Loading embedding model...")
     embedder = SentenceTransformer('all-MiniLM-L6-v2')
 
