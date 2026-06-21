@@ -7,10 +7,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 import joblib
 import pandas as pd
+import sys
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_models():
-    """Create dummy ML models for testing"""
+# Create dummy models BEFORE any imports
+def create_dummy_models():
     ml_models_dir = PathlibPath("ml_models")
     ml_models_dir.mkdir(exist_ok=True)
     
@@ -24,31 +24,18 @@ def setup_models():
     model.fit(X_dummy, y_dummy)
     joblib.dump(model, str(ml_models_dir / "lgbm_model.pkl"))
     
+    return scaler, model
+
+# Create models at pytest startup (BEFORE any test collection)
+scaler, model = create_dummy_models()
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_session():
     yield
 
 @pytest.fixture(autouse=True)
 def mock_everything(monkeypatch):
     """Mock all external dependencies"""
-    
-    # Create dummy models
-    scaler = StandardScaler()
-    X_dummy = np.random.randn(100, 9)
-    scaler.fit(X_dummy)
-    
-    model = LogisticRegression(random_state=42, max_iter=1000)
-    y_dummy = np.random.randint(0, 2, 100)
-    model.fit(X_dummy, y_dummy)
-    
-    # Mock joblib.load
-    original_joblib_load = joblib.load
-    def mock_joblib_load(path, *args, **kwargs):
-        if "scaler.pkl" in str(path):
-            return scaler
-        elif "lgbm_model.pkl" in str(path):
-            return model
-        return original_joblib_load(path, *args, **kwargs)
-    
-    monkeypatch.setattr("joblib.load", mock_joblib_load)
     
     # Mock pandas.read_sql
     tickers_df = pd.DataFrame({"ticker": ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN",
@@ -96,8 +83,6 @@ def mock_everything(monkeypatch):
     mock_conn = MagicMock()
     mock_cursor = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
-    
-    # Mock cursor.fetchall to return risk summary data
     mock_cursor.fetchall.return_value = risk_summary_data
     
     def mock_connect(*args, **kwargs):
