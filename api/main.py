@@ -35,7 +35,7 @@ try:
     model = mlflow.sklearn.load_model("models:/FinancialRiskModel/latest")
     scaler = joblib.load("/home/chitr/financial-risk-platform/ml_models/scaler.pkl")
     print("✅ Model and scaler loaded successfully")
-except Exception as e:
+except (FileNotFoundError, OSError, PermissionError, Exception) as e:
     print(f"❌ Load error: {e}")
     model = None
     scaler = None
@@ -44,7 +44,7 @@ print("Loading RAG index...")
 try:
     rag_index, rag_chunks, rag_embedder = load_index()
     print("✅ RAG index loaded")
-except Exception as e:
+except (FileNotFoundError, OSError, PermissionError, Exception) as e:
     print(f"❌ RAG index error: {e}")
     rag_index = rag_chunks = rag_embedder = None
 
@@ -180,7 +180,7 @@ def explain(request: PredictRequest):
         ]
         feature_impacts.sort(key=lambda x: abs(x["impact"]), reverse=True)
 
-    except Exception as e:
+    except (FileNotFoundError, OSError, PermissionError, Exception) as e:
         feature_impacts = [{"error": str(e)}]
 
     return ExplainResponse(
@@ -279,5 +279,5 @@ def investigate_ticker(request: InvestigateRequest):
             "report":     result['report'],
             "steps":      result['steps']
         }
-    except Exception as e:
+    except (FileNotFoundError, OSError, PermissionError, Exception) as e:
         raise HTTPException(status_code=500, detail=str(e))
