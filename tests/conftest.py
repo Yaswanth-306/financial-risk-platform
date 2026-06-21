@@ -5,37 +5,44 @@ import numpy as np
 from pathlib import Path as PathlibPath
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
-import joblib
 import pandas as pd
 import sys
 
-# Create dummy models BEFORE any imports
-def create_dummy_models():
+# Store the dummy models globally so they're available to mocks
+_dummy_scaler = None
+_dummy_model = None
+
+def pytest_configure(config):
+    """Create dummy models at pytest startup, BEFORE any imports"""
+    global _dummy_scaler, _dummy_model
+    
     ml_models_dir = PathlibPath("ml_models")
     ml_models_dir.mkdir(exist_ok=True)
     
-    scaler = StandardScaler()
+    _dummy_scaler = StandardScaler()
     X_dummy = np.random.randn(100, 9)
-    scaler.fit(X_dummy)
-    joblib.dump(scaler, str(ml_models_dir / "scaler.pkl"))
+    _dummy_scaler.fit(X_dummy)
     
-    model = LogisticRegression(random_state=42, max_iter=1000)
+    _dummy_model = LogisticRegression(random_state=42, max_iter=1000)
     y_dummy = np.random.randint(0, 2, 100)
-    model.fit(X_dummy, y_dummy)
-    joblib.dump(model, str(ml_models_dir / "lgbm_model.pkl"))
+    _dummy_model.fit(X_dummy, y_dummy)
     
-    return scaler, model
-
-# Create models at pytest startup (BEFORE any test collection)
-scaler, model = create_dummy_models()
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_session():
-    yield
+    # Patch joblib.load GLOBALLY before any app imports
+    import joblib
+    original_load = joblib.load
+    
+    def mock_joblib_load(path, *args, **kwargs):
+        if "scaler.pkl" in str(path):
+            return _dummy_scaler
+        elif "lgbm_model.pkl" in str(path):
+            return _dummy_model
+        return original_load(path, *args, **kwargs)
+    
+    joblib.load = mock_joblib_load
 
 @pytest.fixture(autouse=True)
-def mock_everything(monkeypatch):
-    """Mock all external dependencies"""
+def mock_database(monkeypatch):
+    """Mock all database and external service calls"""
     
     # Mock pandas.read_sql
     tickers_df = pd.DataFrame({"ticker": ["AAPL", "TSLA", "GOOGL", "MSFT", "AMZN",
