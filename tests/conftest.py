@@ -34,15 +34,24 @@ def _mock_joblib_load(path, *args, **kwargs):
 
 joblib.load = _mock_joblib_load
 
-# NOW import the app (after joblib is patched)
+# Mock genai.rag_system.load_index BEFORE importing app
+def _mock_load_index():
+    embedder = MagicMock()
+    index = MagicMock()
+    chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
+    return index, chunks, embedder
+
+# Patch before import
+sys.modules['genai.rag_system'] = MagicMock(load_index=_mock_load_index, query_rag=MagicMock())
+
+# NOW import the app (after mocks are patched)
 from fastapi.testclient import TestClient
 from api.main import app
 
-client = TestClient(app)
-
 @pytest.fixture
 def test_client():
-    return client
+    """Return TestClient for testing"""
+    return TestClient(app)
 
 @pytest.fixture(autouse=True)
 def mock_database(monkeypatch):
@@ -100,15 +109,6 @@ def mock_database(monkeypatch):
         return mock_conn
 
     monkeypatch.setattr("psycopg2.connect", mock_connect)
-
-    # Mock RAG load_index
-    def mock_load_index():
-        embedder = MagicMock()
-        index = MagicMock()
-        chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
-        return index, chunks, embedder
-
-    monkeypatch.setattr("genai.rag_system.load_index", mock_load_index)
 
     # Mock query_rag
     def mock_query_rag(*args, **kwargs):
