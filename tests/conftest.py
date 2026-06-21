@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch, MagicMock
 import numpy as np
 from pathlib import Path as PathlibPath
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
 import pandas as pd
 import sys
 import joblib
@@ -17,7 +16,9 @@ _dummy_scaler = StandardScaler()
 X_dummy = np.random.randn(100, 9)
 _dummy_scaler.fit(X_dummy)
 
-_dummy_model = LogisticRegression(random_state=42, max_iter=1000)
+# Use XGBClassifier instead of LogisticRegression for SHAP compatibility
+from xgboost import XGBClassifier
+_dummy_model = XGBClassifier(n_estimators=10, random_state=42, use_label_encoder=False, eval_metric='logloss')
 y_dummy = np.random.randint(0, 2, 100)
 _dummy_model.fit(X_dummy, y_dummy)
 
