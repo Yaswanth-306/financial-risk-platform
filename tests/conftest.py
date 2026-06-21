@@ -21,6 +21,13 @@ _dummy_model = LogisticRegression(random_state=42, max_iter=1000)
 y_dummy = np.random.randint(0, 2, 100)
 _dummy_model.fit(X_dummy, y_dummy)
 
+# Mock MLflow BEFORE importing api.main
+mlflow_mock = MagicMock()
+mlflow_mock.sklearn.load_model = MagicMock(return_value=_dummy_model)
+mlflow_mock.set_tracking_uri = MagicMock()
+sys.modules['mlflow'] = mlflow_mock
+sys.modules['mlflow.sklearn'] = mlflow_mock.sklearn
+
 # Patch joblib.load GLOBALLY before importing the app
 _original_joblib_load = joblib.load
 
