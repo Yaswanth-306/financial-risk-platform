@@ -32,8 +32,18 @@ mlflow.set_tracking_uri(os.getenv('MLFLOW_TRACKING_URI'))
 import joblib
 print("Loading model and scaler...")
 try:
-    model = mlflow.sklearn.load_model("models:/FinancialRiskModel/latest")
-    scaler = joblib.load("/home/chitr/financial-risk-platform/ml_models/scaler.pkl")
+    try:
+        model = mlflow.sklearn.load_model("models:/FinancialRiskModel/latest")
+    except:
+        try:
+            model = joblib.load("/home/chitr/financial-risk-platform/ml_models/lgbm_model.pkl")
+        except:
+            model = None
+    
+    try:
+        scaler = joblib.load("/home/chitr/financial-risk-platform/ml_models/scaler.pkl")
+    except:
+        scaler = None
     print("✅ Model and scaler loaded successfully")
 except (FileNotFoundError, OSError, PermissionError, Exception) as e:
     print(f"❌ Load error: {e}")
