@@ -6,7 +6,7 @@ import mlflow.sklearn
 from genai.agents import investigate
 import shap
 import sys
-sys.path.append('/home/chitr/financial-risk-platform')
+sys.path.append('.')
 from genai.rag_system import load_index, query_rag
 import psycopg2
 from fastapi import FastAPI, HTTPException
@@ -36,12 +36,12 @@ try:
         model = mlflow.sklearn.load_model("models:/FinancialRiskModel/latest")
     except:
         try:
-            model = joblib.load("/home/chitr/financial-risk-platform/ml_models/lgbm_model.pkl")
+            model = joblib.load("./ml_models/lgbm_model.pkl")
         except:
             model = None
     
     try:
-        scaler = joblib.load("/home/chitr/financial-risk-platform/ml_models/scaler.pkl")
+        scaler = joblib.load("./ml_models/scaler.pkl")
     except:
         scaler = None
     print("✅ Model and scaler loaded successfully")

@@ -8,7 +8,7 @@ import numpy as np
 import json
 import re
 
-load_dotenv('/home/chitr/financial-risk-platform/.env')
+load_dotenv('./.env')
 
 _embedder_cache = None
 def _get_embedder():
@@ -20,9 +20,9 @@ def _get_embedder():
 
 # ── Config ────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-DATA_DIR     = Path('/home/chitr/financial-risk-platform/data/sec_filings')
-INDEX_PATH   = Path('/home/chitr/financial-risk-platform/data/faiss_index')
-CHUNKS_PATH  = Path('/home/chitr/financial-risk-platform/data/chunks.json')
+DATA_DIR     = Path('./data/sec_filings')
+INDEX_PATH   = Path('./data/faiss_index')
+CHUNKS_PATH  = Path('./data/chunks.json')
 
 
 # ── SEC EDGAR Fetcher ─────────────────────────────────────
