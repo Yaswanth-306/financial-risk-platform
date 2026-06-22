@@ -139,12 +139,20 @@ def mock_database(monkeypatch):
 
     monkeypatch.setattr("psycopg2.connect", mock_connect)
 
-    # Mock _load_rag_if_needed - immediately set global variables
-    def mock_load_rag_if_needed():
-        import api.main
-        api.main.rag_index = MagicMock()
-        api.main.rag_chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
-        api.main.rag_embedder = MagicMock()
+    # Override _load_rag_if_needed to use mock data
+    import api.main
+    
+    _mock_index = MagicMock()
+    _mock_chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
+    _mock_embedder = MagicMock()
+    
+    def _test_load_rag_if_needed():
+        api.main.rag_index = _mock_index
+        api.main.rag_chunks = _mock_chunks
+        api.main.rag_embedder = _mock_embedder
         return True
     
-    monkeypatch.setattr('api.main._load_rag_if_needed', mock_load_rag_if_needed)
+    monkeypatch.setattr("api.main._load_rag_if_needed", _test_load_rag_if_needed)
+    monkeypatch.setattr("api.main.rag_index", _mock_index)
+    monkeypatch.setattr("api.main.rag_chunks", _mock_chunks)
+    monkeypatch.setattr("api.main.rag_embedder", _mock_embedder)
