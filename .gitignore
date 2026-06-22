@@ -1,13 +1,9 @@
 .env
 __pycache__/
 *.pyc
-*.pkl
 *.db
 *.sqlite
 mlflow-artifacts/
-data/sec_filings/
-data/faiss_index
-data/chunks.json
 *.egg-info/
 .pytest_cache/
 venv/
@@ -15,3 +11,10 @@ airflow-venv/
 logs/
 *.log
 .DS_Store
+
+# Keep these specific files (override broad excludes if needed)
+!ml_models/*.pkl
+!data/sec_filings/*.txt
+!data/faiss_index
+!data/chunks.json
+mlruns/
