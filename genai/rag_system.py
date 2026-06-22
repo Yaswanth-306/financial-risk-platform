@@ -3,13 +3,20 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
-from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
 import json
 import re
 
 load_dotenv('/home/chitr/financial-risk-platform/.env')
+
+_embedder_cache = None
+def _get_embedder():
+    global _embedder_cache
+    if _embedder_cache is None:
+        from sentence_transformers import SentenceTransformer
+        _embedder_cache = SentenceTransformer('all-MiniLM-L6-v2')
+    return _embedder_cache
 
 # ── Config ────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
@@ -120,7 +127,7 @@ def chunk_text(text: str, chunk_size=400, overlap=50):
 # ── Embedding + FAISS ─────────────────────────────────────
 def build_index(tickers):
     print("Loading embedding model...")
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    embedder = _get_embedder()  # 'all-MiniLM-L6-v2')
 
     all_chunks = []
     all_meta   = []
@@ -153,7 +160,7 @@ def load_index():
     index    = faiss.read_index(str(INDEX_PATH))
     with open(CHUNKS_PATH) as f:
         chunks = json.load(f)
-    embedder = SentenceTransformer('all-MiniLM-L6-v2')
+    embedder = _get_embedder()  # 'all-MiniLM-L6-v2')
     return index, chunks, embedder
 
 # ── RAG Query ─────────────────────────────────────────────

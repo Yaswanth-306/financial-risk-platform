@@ -39,14 +39,23 @@ except (FileNotFoundError, OSError, PermissionError, Exception) as e:
     print(f"❌ Load error: {e}")
     model = None
     scaler = None
-# Load RAG index at startup
-print("Loading RAG index...")
-try:
-    rag_index, rag_chunks, rag_embedder = load_index()
-    print("✅ RAG index loaded")
-except (FileNotFoundError, OSError, PermissionError, Exception) as e:
-    print(f"❌ RAG index error: {e}")
-    rag_index = rag_chunks = rag_embedder = None
+# Lazy-load RAG index on first /ask call
+rag_index = None
+rag_chunks = None
+rag_embedder = None
+
+def _load_rag_if_needed():
+    global rag_index, rag_chunks, rag_embedder
+    if rag_index is None:
+        try:
+            print("Loading RAG index...")
+            rag_index, rag_chunks, rag_embedder = load_index()
+            print("OK RAG index loaded")
+            return True
+        except Exception as e:
+            print(f"ERR RAG error: {e}")
+            return False
+    return True
 
 # ── Feature columns ───────────────────────────────────────
 FEATURES = [
