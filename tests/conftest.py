@@ -138,3 +138,17 @@ def mock_database(monkeypatch):
         return mock_conn
 
     monkeypatch.setattr("psycopg2.connect", mock_connect)
+
+    # Mock _load_rag_if_needed to make /ask endpoint work
+    import api.main
+    
+    def mock_load_rag():
+        api.main.rag_index = index
+        api.main.rag_chunks = chunks
+        api.main.rag_embedder = embedder
+        return True
+    
+    monkeypatch.setattr('api.main._load_rag_if_needed', mock_load_rag)
+    monkeypatch.setattr('api.main.rag_index', index)
+    monkeypatch.setattr('api.main.rag_chunks', chunks)
+    monkeypatch.setattr('api.main.rag_embedder', embedder)
