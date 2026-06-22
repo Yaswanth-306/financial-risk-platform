@@ -139,16 +139,12 @@ def mock_database(monkeypatch):
 
     monkeypatch.setattr("psycopg2.connect", mock_connect)
 
-    # Mock _load_rag_if_needed to make /ask endpoint work
-    import api.main
-    
-    def mock_load_rag():
-        api.main.rag_index = index
-        api.main.rag_chunks = chunks
-        api.main.rag_embedder = embedder
+    # Mock _load_rag_if_needed - immediately set global variables
+    def mock_load_rag_if_needed():
+        import api.main
+        api.main.rag_index = MagicMock()
+        api.main.rag_chunks = [{"text": "dummy chunk", "ticker": "AAPL"}]
+        api.main.rag_embedder = MagicMock()
         return True
     
-    monkeypatch.setattr('api.main._load_rag_if_needed', mock_load_rag)
-    monkeypatch.setattr('api.main.rag_index', index)
-    monkeypatch.setattr('api.main.rag_chunks', chunks)
-    monkeypatch.setattr('api.main.rag_embedder', embedder)
+    monkeypatch.setattr('api.main._load_rag_if_needed', mock_load_rag_if_needed)
