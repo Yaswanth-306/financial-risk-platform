@@ -271,8 +271,10 @@ class AskRequest(BaseModel):
 
 @app.post("/ask")
 def ask(request: AskRequest):
+    # Lazy-load RAG on first call
+    _load_rag_if_needed()
     if rag_index is None:
-        raise HTTPException(status_code=500, detail="RAG index not loaded")
+        raise HTTPException(status_code=503, detail="RAG system initializing, please retry in 30 seconds")
     result = query_rag(
         request.question,
         rag_index,
